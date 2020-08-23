@@ -129,7 +129,7 @@ mkdir -p /var/opt/jfrog/artifactory/data/artifactory/eventual/
 ln -s /var/opt/jfrog/artifactory/data/artifactory/filestore /var/opt/jfrog/artifactory/data/artifactory/eventual/_add
 ln -s /var/opt/jfrog/artifactory/data/artifactory/filestore/_pre /var/opt/jfrog/artifactory/data/artifactory/eventual/_pre
 
-# configure binarystore.xml according to "s3-storage-v3" template
+* configure binarystore.xml according to "s3-storage-v3" template
 
 - vi /opt/jfrog/artifactory/var/etc/artifactory/binarystore.xml
 
@@ -182,15 +182,15 @@ watch exported data directory size: du  -sh var/system_export_8_8_20/
 
 
 
-# artifactory-ha-test helm deployment - INCLUDING *.sentinelone.net certificate (see 'nginx' section in values.yaml under '/Users/danielh/Desktop/sentinelOne/Tasks/artifactory-ha/artifactory-ha')
+# artifactory-ha-test helm deployment - INCLUDING *.sentinelone.net certificate (see 'nginx' section in values.yaml)
 
-create mysecret.yaml with the following content:
+* create mysecret.yaml with the following content:
 
 apiVersion: v1
 
 data:
 
-  master-key: NTBhMDJiYmJkYjYyMmExMjhlM2EyYjBmZGY3NjkxYWM4MWJkYzVlOTZlODMzMzRjYzdjMzVkNzc3YWQ2NDYxNw==
+  master-key: XXX
 
 kind: Secret
 
@@ -200,7 +200,7 @@ metadata:
 
     kubectl.kubernetes.io/last-applied-configuration: |
 
-      {"apiVersion":"v1","data":{"master-key":"NTBhMDJiYmJkYjYyMmExMjhlM2EyYjBmZGY3NjkxYWM4MWJkYzVlOTZlODMzMzRjYzdjMzVkNzc3YWQ2NDYxNw=="},"kind":"Secret","metadata":{"annotations":{},"creationTimestamp":"2020-07-23T13:37:47Z","name":"my-secret","namespace":"artifactory-ha-stage","resourceVersion":"2312290891"},"type":"Opaque"}
+      {"apiVersion":"v1","data":{"master-key":"XXX=="},"kind":"Secret","metadata":{"annotations":{},"creationTimestamp":"2020-07-23T13:37:47Z","name":"my-secret","namespace":"artifactory-ha-stage","resourceVersion":"2312290891"},"type":"Opaque"}
 
   creationTimestamp: "2020-07-30T08:12:31Z"
 
@@ -216,6 +216,7 @@ metadata:
 
 type: Opaque
 
+
 # apply created secret yaml file: kubectl create -f mysecret.yaml
 
 # prepare AWS RDS AuroraPostgreSQL DB (version 9.6.11, DB cluster ID: artifactory-ha-aurora-stage, username: postgres, password: dWnjQFaYP9PjsAbW, initial DB name: artifactoryhadb, subnet: us-east-1-private-aurora, security group: artifactory-ha-aurora-sg ): https://console.aws.amazon.com/rds/home?region=us-east-1#database:id=artifactory-ha-aurora-stage;is-cluster=true;tab=connectivity 
@@ -223,12 +224,12 @@ type: Opaque
 # prepare env variables and deploy:
 
 export AWS_REGION='us-east-1'
-export AWS_S3_BUCKET_NAME='s1-artifactory-backend'
-export AWS_IAM_ROLE_ARN='arn:aws:iam::161638504285:role/artifactory-role'
+export AWS_S3_BUCKET_NAME='XXX'
+export AWS_IAM_ROLE_ARN='arn:aws:iam::12345:role/XXX'
 
 
 
-helm3 upgrade --install artifactory-ha-stage --set artifactory.masterKeySecretName=my-secret --set artifactory.persistence.type=aws-s3-v3 --set artifactory.persistence.awsS3V3.region=${AWS_REGION} --set artifactory.persistence.awsS3V3.bucketName=${AWS_S3_BUCKET_NAME} --set artifactory.annotations.'iam\.amazonaws\.com/role'=${AWS_IAM_ROLE_ARN} --set artifactory.persistence.enabled=false --set artifactory.persistence.awsS3.path=artifactory/filestore --set postgresql.enabled=false --set database.type=postgresql --set database.driver=org.postgresql.Driver --set database.url='jdbc:postgresql://artifactory-ha-aurora-stage.cluster-c8f6rvycvy9w.us-east-1.rds.amazonaws.com:5432/artifactoryhadb' --set database.user=postgres --set database.password=dWnjQFaYP9PjsAbW --set artifactory.node.replicaCount=0 --namespace artifactory-ha-stage --set artifactory.node.replicaCount=0 --set artifactory.service.pool=all --set artifactory.primary.resources.requests.cpu="8" \
+helm3 upgrade --install artifactory-ha-prod --set artifactory.masterKeySecretName=my-secret --set artifactory.persistence.type=aws-s3-v3 --set artifactory.persistence.awsS3V3.region=${AWS_REGION} --set artifactory.persistence.awsS3V3.bucketName=${AWS_S3_BUCKET_NAME} --set artifactory.annotations.'iam\.amazonaws\.com/role'=${AWS_IAM_ROLE_ARN} --set artifactory.persistence.enabled=false --set artifactory.persistence.awsS3.path=artifactory/filestore --set postgresql.enabled=false --set database.type=postgresql --set database.driver=org.postgresql.Driver --set database.url='jdbc:postgresql://artifactory-ha-aurora-prod.cluster-c8f6rvycvy9w.us-east-1.rds.amazonaws.com:5432/artifactoryhadb' --set database.user=postgres --set database.password=dWnjQFaYP9PjsAbW --namespace artifactory-ha-prod --set artifactory.node.replicaCount=0 --set artifactory.service.pool=all --set artifactory.persistence.maxCacheSize=8e+10 --set artifactory.primary.resources.requests.cpu="8" \
 --set artifactory.primary.resources.limits.cpu="16" \
 --set artifactory.primary.resources.requests.memory="20Gi" \
 --set artifactory.primary.resources.limits.memory="24Gi" \
@@ -238,12 +239,12 @@ helm3 upgrade --install artifactory-ha-stage --set artifactory.masterKeySecretNa
 --set artifactory.node.resources.limits.cpu="4" \
 --set artifactory.node.resources.requests.memory="4Gi" \
 --set artifactory.node.resources.limits.memory="6Gi" \
---set artifactory.node.javaOpts.xms="32g" \
---set artifactory.node.javaOpts.xmx="32g" \
+--set artifactory.node.javaOpts.xms="22g" \
+--set artifactory.node.javaOpts.xmx="22g" \
 --set nginx.resources.requests.cpu="100m" \
 --set nginx.resources.limits.cpu="250m" \
 --set nginx.resources.requests.memory="250Mi" \
---set nginx.resources.limits.memory="500Mi" artifactory-ha
+--set nginx.resources.limits.memory="500Mi" artifactory-ha-chart
 
 # login to artifactory-ha UI: 
 
