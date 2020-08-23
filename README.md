@@ -200,17 +200,17 @@ metadata:
 
     kubectl.kubernetes.io/last-applied-configuration: |
 
-      {"apiVersion":"v1","data":{"master-key":"XXX=="},"kind":"Secret","metadata":{"annotations":{},"creationTimestamp":"2020-07-23T13:37:47Z","name":"my-secret","namespace":"artifactory-ha-stage","resourceVersion":"2312290891"},"type":"Opaque"}
+      {"apiVersion":"v1","data":{"master-key":"XXX"},"kind":"Secret","metadata":{"annotations":{},"creationTimestamp":"2020-07-23T13:37:47Z","name":"my-secret","namespace":"artifactory-ha-prod","resourceVersion":"2312290891"},"type":"Opaque"}
 
   creationTimestamp: "2020-07-30T08:12:31Z"
 
   name: my-secret
 
-  namespace: artifactory-ha-stage
+  namespace: artifactory-ha-prod
 
   resourceVersion: "2386393811"
 
-  selfLink: /api/v1/namespaces/artifactory-ha-stage/secrets/my-secret
+  selfLink: /api/v1/namespaces/artifactory-ha-prod/secrets/my-secret
 
   uid: d4c99366-cdfe-4f87-b5cd-fca13ce147de
 
@@ -219,7 +219,7 @@ type: Opaque
 
 # apply created secret yaml file: kubectl create -f mysecret.yaml
 
-# prepare AWS RDS AuroraPostgreSQL DB (version 9.6.11, DB cluster ID: artifactory-ha-aurora-stage, username: postgres, password: dWnjQFaYP9PjsAbW, initial DB name: artifactoryhadb, subnet: us-east-1-private-aurora, security group: artifactory-ha-aurora-sg ): https://console.aws.amazon.com/rds/home?region=us-east-1#database:id=artifactory-ha-aurora-stage;is-cluster=true;tab=connectivity 
+# prepare AWS RDS AuroraPostgreSQL DB (version 9.6.11, DB cluster ID: artifactory-ha-aurora-prod, username: postgres, password: XXX, initial DB name: artifactoryhadb, subnet: XXX, security group: XXX )
 
 # prepare env variables and deploy:
 
@@ -229,7 +229,7 @@ export AWS_IAM_ROLE_ARN='arn:aws:iam::12345:role/XXX'
 
 
 
-helm3 upgrade --install artifactory-ha-prod --set artifactory.masterKeySecretName=my-secret --set artifactory.persistence.type=aws-s3-v3 --set artifactory.persistence.awsS3V3.region=${AWS_REGION} --set artifactory.persistence.awsS3V3.bucketName=${AWS_S3_BUCKET_NAME} --set artifactory.annotations.'iam\.amazonaws\.com/role'=${AWS_IAM_ROLE_ARN} --set artifactory.persistence.enabled=false --set artifactory.persistence.awsS3.path=artifactory/filestore --set postgresql.enabled=false --set database.type=postgresql --set database.driver=org.postgresql.Driver --set database.url='jdbc:postgresql://artifactory-ha-aurora-prod.cluster-c8f6rvycvy9w.us-east-1.rds.amazonaws.com:5432/artifactoryhadb' --set database.user=postgres --set database.password=dWnjQFaYP9PjsAbW --namespace artifactory-ha-prod --set artifactory.node.replicaCount=0 --set artifactory.service.pool=all --set artifactory.persistence.maxCacheSize=8e+10 --set artifactory.primary.resources.requests.cpu="8" \
+helm3 upgrade --install artifactory-ha-prod --set artifactory.masterKeySecretName=my-secret --set artifactory.persistence.type=aws-s3-v3 --set artifactory.persistence.awsS3V3.region=${AWS_REGION} --set artifactory.persistence.awsS3V3.bucketName=${AWS_S3_BUCKET_NAME} --set artifactory.annotations.'iam\.amazonaws\.com/role'=${AWS_IAM_ROLE_ARN} --set artifactory.persistence.enabled=false --set artifactory.persistence.awsS3.path=artifactory/filestore --set postgresql.enabled=false --set database.type=postgresql --set database.driver=org.postgresql.Driver --set database.url='jdbc:postgresql://artifactory-ha-aurora-prod.cluster-c8f6rvycvy9w.us-east-1.rds.amazonaws.com:5432/artifactoryhadb' --set database.user=postgres --set database.password=XXX --namespace artifactory-ha-prod --set artifactory.node.replicaCount=0 --set artifactory.service.pool=all --set artifactory.persistence.maxCacheSize=8e+10 --set artifactory.primary.resources.requests.cpu="8" \
 --set artifactory.primary.resources.limits.cpu="16" \
 --set artifactory.primary.resources.requests.memory="20Gi" \
 --set artifactory.primary.resources.limits.memory="24Gi" \
